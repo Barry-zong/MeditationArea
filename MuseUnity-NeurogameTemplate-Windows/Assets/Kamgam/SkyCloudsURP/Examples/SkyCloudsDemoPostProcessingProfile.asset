@@ -34,19 +34,19 @@ MonoBehaviour:
     m_Value: 1
   threshold:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0.5
   intensity:
     m_OverrideState: 1
-    m_Value: 1
+    m_Value: 0.5
   scatter:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0.7
   clamp:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 65472
   tint:
-    m_OverrideState: 0
-    m_Value: {r: 1, g: 1, b: 1, a: 1}
+    m_OverrideState: 1
+    m_Value: {r: 1, g: 0.8226064, b: 0.70754707, a: 1}
   highQualityFiltering:
     m_OverrideState: 0
     m_Value: 0
@@ -174,7 +174,7 @@ MonoBehaviour:
   active: 1
   distance:
     m_OverrideState: 1
-    m_Value: 182
+    m_Value: 250
   baseHeight:
     m_OverrideState: 1
     m_Value: 0
@@ -189,7 +189,7 @@ MonoBehaviour:
     m_Value: 0
   density:
     m_OverrideState: 1
-    m_Value: 0.2
+    m_Value: 1
   attenuationDistance:
     m_OverrideState: 1
     m_Value: 128
@@ -198,13 +198,13 @@ MonoBehaviour:
     m_Value: 1
   mainLightAnisotropy:
     m_OverrideState: 1
-    m_Value: 0.4
+    m_Value: 0.06
   mainLightScattering:
     m_OverrideState: 1
-    m_Value: 0.15
+    m_Value: 0.87
   mainLightColorTint:
     m_OverrideState: 1
-    m_Value: {r: 1, g: 1, b: 1, a: 1}
+    m_Value: {r: 1.1486983, g: 0.6526542, b: 0.4009606, a: 1}
   enableAdditionalLightsContribution:
     m_OverrideState: 1
     m_Value: 1
@@ -219,7 +219,7 @@ MonoBehaviour:
     m_Value: 0.2
   maxSteps:
     m_OverrideState: 1
-    m_Value: 64
+    m_Value: 63
   blurIterations:
     m_OverrideState: 1
     m_Value: 2
@@ -260,7 +260,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97c23e3b12dc18c42a140437e53d3951, type: 3}
   m_Name: Tonemapping
   m_EditorClassIdentifier: 
-  active: 1
+  active: 0
   mode:
     m_OverrideState: 1
     m_Value: 1

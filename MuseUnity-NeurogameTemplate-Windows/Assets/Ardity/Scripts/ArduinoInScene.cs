@@ -5,6 +5,7 @@ public class ArduinoInScene : MonoBehaviour
     public SerialController serialController;
     public float arduinoPortNumberOne = 0;
     public float arduinoPortNumberTwo = 0;
+    public float arduinoPortNumberThree = 0;
     public string ArduinoMessage = string.Empty;
    private string message;
 
@@ -47,11 +48,12 @@ public class ArduinoInScene : MonoBehaviour
     {
         // 将数据按逗号分割
         string[] sensorValues = data.Split(',');
-        if (sensorValues.Length >= 2)
+        if (sensorValues.Length >= 3)
         {
             // 解析为整数并赋值到public变量
             arduinoPortNumberOne = int.Parse(sensorValues[0]);
             arduinoPortNumberTwo = int.Parse(sensorValues[1]);
+            arduinoPortNumberThree = int.Parse(sensorValues[2]);
         }
     }
 }
