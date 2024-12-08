@@ -15,8 +15,10 @@ public class PlayerBugMove : MonoBehaviour
     private float rotationSpeed = 720f;
     [SerializeField]
     private LayerMask groundLayer;
-    private float oppositeRotation;
+    [SerializeField]
+    private float maxGroundAngle = 45f; // 可以行走的最大坡度
 
+    private float oppositeRotation;
     private const float NEUTRAL_MIN = 450f;
     private const float NEUTRAL_MAX = 520f;
     private const float MAX_SENSOR_VALUE = 1023f;
@@ -27,6 +29,7 @@ public class PlayerBugMove : MonoBehaviour
     private bool canJump = true;
     private float baseRotationY;
     private float targetRotation = 0f;
+    private Vector3 groundNormal = Vector3.up; // 存储地面法线
 
     void Start()
     {
@@ -42,13 +45,20 @@ public class PlayerBugMove : MonoBehaviour
         rb.useGravity = true;
 
         baseRotationY = transform.eulerAngles.y;
-        // 计算相反方向的角度
         oppositeRotation = baseRotationY + 180f;
     }
 
     private bool IsGrounded()
     {
-        return Physics.Raycast(transform.position, Vector3.down, groundCheckDistance, groundLayer);
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position, Vector3.down, out hit, groundCheckDistance, groundLayer))
+        {
+            groundNormal = hit.normal;
+            float angle = Vector3.Angle(hit.normal, Vector3.up);
+            return angle <= maxGroundAngle;
+        }
+        groundNormal = Vector3.up;
+        return false;
     }
 
     private void HandleJump()
@@ -71,28 +81,16 @@ public class PlayerBugMove : MonoBehaviour
 
     private void HandleRotation(float horizontalInput, float verticalInput)
     {
-
-        // 处理水平移动的旋转
-        if (horizontalInput > 0) // 向右
-        {
+        if (horizontalInput > 0)
             targetRotation = baseRotationY + 90f;
-        }
-        else if (horizontalInput < 0) // 向左
-        {
+        else if (horizontalInput < 0)
             targetRotation = baseRotationY - 90f;
-        }
-        else if (verticalInput < 0) // 向后
-        {
+        else if (verticalInput < 0)
             targetRotation = baseRotationY + 180f;
-        }
-        else if (verticalInput > 0) // 向前移动
-        {
+        else if (verticalInput > 0)
             targetRotation = baseRotationY;
-        }
-        else // 没有输入，回到相反方向
-        {
+        else
             targetRotation = oppositeRotation;
-        }
 
         Quaternion targetQuaternion = Quaternion.Euler(
             transform.eulerAngles.x,
@@ -105,14 +103,16 @@ public class PlayerBugMove : MonoBehaviour
             targetQuaternion,
             rotationSpeed * Time.deltaTime
         );
-    
-     }
-
+    }
 
     private void Update()
     {
         HandleJump();
+        HandleArduinoInput();
+    }
 
+    private void HandleArduinoInput()
+    {
         if (arduinoScript != null)
         {
             float value1 = arduinoScript.arduinoPortNumberOne;
@@ -123,32 +123,19 @@ public class PlayerBugMove : MonoBehaviour
                 useArduinoControl = true;
 
                 if (value1 > NEUTRAL_MAX)
-                {
                     verticalMovement = -Mathf.InverseLerp(NEUTRAL_MAX, MAX_SENSOR_VALUE, value1);
-                }
                 else if (value1 < NEUTRAL_MIN)
-                {
                     verticalMovement = 1 - Mathf.InverseLerp(MIN_SENSOR_VALUE, NEUTRAL_MIN, value1);
-                }
                 else
-                {
                     verticalMovement = 0f;
-                }
 
                 if (value2 > NEUTRAL_MAX)
-                {
                     horizontalMovement = -(Mathf.InverseLerp(NEUTRAL_MAX, MAX_SENSOR_VALUE, value2));
-                }
                 else if (value2 < NEUTRAL_MIN)
-                {
                     horizontalMovement = 1 - Mathf.InverseLerp(MIN_SENSOR_VALUE, NEUTRAL_MIN, value2);
-                }
                 else
-                {
                     horizontalMovement = 0f;
-                }
 
-                // 传入垂直和水平移动值
                 HandleRotation(horizontalMovement, verticalMovement);
             }
             else
@@ -170,14 +157,43 @@ public class PlayerBugMove : MonoBehaviour
             float horizontalInput = Input.GetAxis("Horizontal");
             float verticalInput = Input.GetAxis("Vertical");
             movement = new Vector3(horizontalInput, 0f, verticalInput);
-
-            // 传入垂直和水平输入值
             HandleRotation(horizontalInput, verticalInput);
         }
 
-        float currentYVelocity = rb.linearVelocity.y;
-        Vector3 newVelocity = movement * moveSpeed;
-        newVelocity.y = currentYVelocity;
-        rb.linearVelocity = newVelocity;
+        // 计算移动方向
+        Vector3 moveDirection = movement.normalized;
+
+        // 在地面上时，将移动向量投影到地面平面上
+        if (IsGrounded())
+        {
+            moveDirection = Vector3.ProjectOnPlane(moveDirection, groundNormal).normalized;
+        }
+
+        // 保持当前的Y轴速度（重力影响）
+        Vector3 currentVelocity = rb.linearVelocity;
+        Vector3 targetVelocity = moveDirection * moveSpeed;
+        targetVelocity.y = currentVelocity.y;
+
+        // 使用力来移动，而不是直接设置速度
+        Vector3 velocityChange = targetVelocity - currentVelocity;
+        velocityChange.y = 0f; // 不修改垂直方向的速度
+
+        // 应用力
+        rb.AddForce(velocityChange, ForceMode.VelocityChange);
+    }
+
+    private void OnCollisionStay(Collision collision)
+    {
+        // 检查碰撞面的角度
+        foreach (ContactPoint contact in collision.contacts)
+        {
+            float angle = Vector3.Angle(contact.normal, Vector3.up);
+            if (angle > maxGroundAngle)
+            {
+                // 抵消在陡峭表面上的移动力
+                Vector3 normalForce = Vector3.Project(rb.linearVelocity, contact.normal);
+                rb.AddForce(-normalForce, ForceMode.VelocityChange);
+            }
+        }
     }
 }
