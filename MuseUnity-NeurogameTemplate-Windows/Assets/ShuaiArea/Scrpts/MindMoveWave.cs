@@ -28,13 +28,13 @@ public class MindMoveWave : MonoBehaviour
     public float moonFloatSpeed = 1f;
     public float moonScaleSpeed = 1.5f;
 
-    [Header("Flow Light Control")]
+    [Header("RoomMoon Light Control")]
     public Light flowLight;
     public float minIntensity = 0.5f;
     public float maxIntensity = 3f;
     public float lightChangeSpeed = 1f;
 
-    [Header("Focus Spotlight Control")]
+    [Header("Player Spotlight Control")]
     public Light playerLight;                  // 聚光灯组件
     public float spotMinIntensity = 0.2f;     // 最小亮度（focus为0时）
     public float spotMaxIntensity = 5f;       // 最大亮度
@@ -52,8 +52,8 @@ public class MindMoveWave : MonoBehaviour
     private float targetFlow = 0;
     private float currentFlow = 0;
 
-   
 
+    [Header("Second Room Start Light")]
     public RoomChangeController roomChangeCC;
 
     void Start()
@@ -68,7 +68,7 @@ public class MindMoveWave : MonoBehaviour
 
         if (Moon != null )
         {
-            Debug.Log(roomChangeCC.triggerActivated);
+            //Debug.Log(roomChangeCC.triggerActivated);
             moonStartPosition = Moon.transform.position;
             currentMoonHeight = moonStartPosition.y;
            
