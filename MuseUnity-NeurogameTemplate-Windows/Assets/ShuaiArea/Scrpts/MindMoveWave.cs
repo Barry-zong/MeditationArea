@@ -5,6 +5,7 @@ using Interaxon.Libmuse;
 public class MindMoveWave : MonoBehaviour
 {
     [Header("Wave Settings")]
+    public GameObject waveCenter; // 新增：用于指定生成中心的物体
     public GameObject prefab;
     public int rows = 5;
     public int columns = 5;
@@ -50,6 +51,8 @@ public class MindMoveWave : MonoBehaviour
     private float currentMoonScale = 1f;
     private float targetFlow = 0;
     private float currentFlow = 0;
+
+   
 
     public RoomChangeController roomChangeCC;
 
@@ -199,8 +202,9 @@ public class MindMoveWave : MonoBehaviour
     }
 
     private void generateArray()
-    {
-        center = transform.position;
+    { // 使用指定物体的位置作为中心点
+        center = waveCenter != null ? waveCenter.transform.position : transform.position;
+
         for (int i = 0; i < rows; i++)
         {
             for (int j = 0; j < columns; j++)

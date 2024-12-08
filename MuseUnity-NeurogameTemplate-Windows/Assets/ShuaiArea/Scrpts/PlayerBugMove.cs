@@ -15,6 +15,7 @@ public class PlayerBugMove : MonoBehaviour
     private float rotationSpeed = 720f;
     [SerializeField]
     private LayerMask groundLayer;
+    private float oppositeRotation;
 
     private const float NEUTRAL_MIN = 450f;
     private const float NEUTRAL_MAX = 520f;
@@ -41,6 +42,8 @@ public class PlayerBugMove : MonoBehaviour
         rb.useGravity = true;
 
         baseRotationY = transform.eulerAngles.y;
+        // 计算相反方向的角度
+        oppositeRotation = baseRotationY + 180f;
     }
 
     private bool IsGrounded()
@@ -68,6 +71,7 @@ public class PlayerBugMove : MonoBehaviour
 
     private void HandleRotation(float horizontalInput, float verticalInput)
     {
+
         // 处理水平移动的旋转
         if (horizontalInput > 0) // 向右
         {
@@ -81,9 +85,13 @@ public class PlayerBugMove : MonoBehaviour
         {
             targetRotation = baseRotationY + 180f;
         }
-        else // 向前或静止
+        else if (verticalInput > 0) // 向前移动
         {
             targetRotation = baseRotationY;
+        }
+        else // 没有输入，回到相反方向
+        {
+            targetRotation = oppositeRotation;
         }
 
         Quaternion targetQuaternion = Quaternion.Euler(
@@ -97,7 +105,8 @@ public class PlayerBugMove : MonoBehaviour
             targetQuaternion,
             rotationSpeed * Time.deltaTime
         );
-    }
+    
+     }
 
 
     private void Update()

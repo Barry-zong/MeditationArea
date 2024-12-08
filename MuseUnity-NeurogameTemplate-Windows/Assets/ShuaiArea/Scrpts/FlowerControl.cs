@@ -36,7 +36,7 @@ public class FlowerControl : MonoBehaviour
         else
         {
             // 获取并限制flow值
-            float MuseNumber_flower = Mathf.Clamp(InteraxonInterfacer.Instance.flow * 10, 0, 10);
+            float MuseNumber_flower = Mathf.Clamp(InteraxonInterfacer.Instance.focus * 10, 0, 10);
 
             // 根据flow值确定目标动画速度
             if (MuseNumber_flower > flowerMove)
