@@ -7,10 +7,17 @@ public class WaveSystemCircle : MonoBehaviour
     [Header("Wave Generation Settings")]
     public GameObject waveCenter;
     public GameObject prefab;
+    public GameObject PlayerBug; // 新增Player引用
     public float outerRadius = 5f;
     public float innerRadius = 2f;
     public float ringSpacing = 1f;
     public float elementScale = 1f;
+
+    [Header("Distance Scale Settings")] // 新增距离缩放相关设置
+    public float minDistance = 1f;
+    public float maxDistance = 10f;
+    public float minScaleBonus = 0f;
+    public float maxScaleBonus = 0.2f;
 
     [Header("Performance Settings")]
     [Range(3, 20)]
@@ -23,7 +30,7 @@ public class WaveSystemCircle : MonoBehaviour
     public float floatFrequency = 0.5f;
 
     [Header("Cleanup Settings")]
-    public float destroyDelay = 0.5f;  // 销毁延迟时间
+    public float destroyDelay = 0.5f;
 
     private List<GameObject> prefabs = new List<GameObject>();
     private Vector3 center;
@@ -37,6 +44,8 @@ public class WaveSystemCircle : MonoBehaviour
     [Header("wavingBalls")]
     public Material wavingBalls;
 
+    public FlowRoomSwitch flowRoomSwitch;
+
     void Start()
     {
         wavingBalls.SetColor("_EmissionColor", Color.white * Mathf.Pow(2, -5f));
@@ -48,13 +57,12 @@ public class WaveSystemCircle : MonoBehaviour
     }
 
     void Update()
-
-
     {
+        if (!flowRoomSwitch.flowStartBool) return;
+        if (PlayerBug == null) return;
+
         wavingBalls.SetColor("_EmissionColor", Color.white * Mathf.Pow(2, -5 + (currentMindFocus / 20) * 7));
-
-        floatAmplitude =2.2f - currentMindFocus/10;
-
+        floatAmplitude = 2.2f - currentMindFocus/10;
 
         prefabs.RemoveAll(item => item == null);
 
@@ -67,6 +75,25 @@ public class WaveSystemCircle : MonoBehaviour
         }
 
         UpdateWaveMovement();
+        UpdateBallsScale(); // 新增更新小球尺寸的调用
+    }
+
+    // 新增：更新小球尺寸的方法
+    private void UpdateBallsScale()
+    {
+        foreach (var ball in prefabs)
+        {
+            if (ball != null)
+            {
+                float distance = Vector3.Distance(ball.transform.position, PlayerBug.transform.position);
+                Debug.Log(distance);
+                float normalizedDistance = Mathf.Clamp01((distance - minDistance) / (maxDistance - minDistance));
+                float newBallsScale = Mathf.Lerp(maxScaleBonus, minScaleBonus, normalizedDistance);
+                
+                // 更新小球尺寸：基础尺寸 + 距离带来的额外尺寸
+                ball.transform.localScale = Vector3.one * (elementScale + newBallsScale);
+            }
+        }
     }
 
     private void CleanupExistingPrefabs()
@@ -75,7 +102,6 @@ public class WaveSystemCircle : MonoBehaviour
         {
             if (obj != null)
             {
-                // 使用延时销毁
                 Destroy(obj, destroyDelay);
             }
         }
@@ -178,11 +204,16 @@ public class WaveSystemCircle : MonoBehaviour
         if (floatAmplitude < 0) floatAmplitude = 0;
         if (floatFrequency < 0) floatFrequency = 0;
         if (destroyDelay < 0.1f) destroyDelay = 0.1f;
+        
+        // 新增距离相关参数的验证
+        if (minDistance < 0) minDistance = 0;
+        if (maxDistance < minDistance) maxDistance = minDistance + 1;
+        if (minScaleBonus < 0) minScaleBonus = 0;
+        if (maxScaleBonus < minScaleBonus) maxScaleBonus = minScaleBonus;
     }
 
     void OnDisable()
     {
-        // 使用延时销毁
         foreach (var obj in prefabs)
         {
             if (obj != null)
