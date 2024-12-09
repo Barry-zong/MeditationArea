@@ -48,7 +48,7 @@ public class DoorLightController : MonoBehaviour
     {
         if (doorLightMat != null && !doorLightMat.name.Contains("(Instance)"))
         {
-            Destroy(doorLightMat);
+          //  Destroy(doorLightMat);
         }
     }
 }

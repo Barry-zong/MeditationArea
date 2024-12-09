@@ -51,12 +51,12 @@ public class FocusLightController : MonoBehaviour
     {
         if (playerMat != null && !playerMat.name.Contains("(Instance)"))
         {
-            Destroy(playerMat);
+          //  Destroy(playerMat);
         }
 
         if (flowerMat != null && !flowerMat.name.Contains("(Instance)"))
         {
-            Destroy(flowerMat);
+          //  Destroy(flowerMat);
         }
     }
 }
