@@ -352,7 +352,9 @@ public class InteraxonInterfacer : MonoBehaviour
 
             calm = stupidModel.GetCalm(AlphaScore, BetaScore, DeltaScore, ThetaScore, GammaScore);
             focus = stupidModel.GetFocus(AlphaScore, BetaScore, DeltaScore, ThetaScore, GammaScore);
-            flow = stupidModel.GetFlow(AlphaScore, BetaScore, DeltaScore, ThetaScore, GammaScore);
+
+            //flow edit
+            flow = stupidModel.GetFlow(AlphaScore, BetaScore, DeltaScore, ThetaScore, GammaScore)*20;
 
             heartMonitor = stupidModel.GetPPGRate(PPG);
         }

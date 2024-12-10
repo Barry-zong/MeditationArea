@@ -3,9 +3,9 @@ using UnityEngine;
 public class RandomRotatingBalls : MonoBehaviour
 {
     public bool FinalSceneStart = false;
-    public float RadioBall = 5f; // 生成球体的半径范围
-    public int BallsNumber = 10; // 要生成的球体数量
-    public GameObject RoatateBallPre; // 球体预制体
+    public float RadioBall = 5f;
+    public int BallsNumber = 10;
+    public GameObject RoatateBallPre;
 
     // 运动控制参数
     public float minRotationSpeed = 20f;
@@ -14,6 +14,12 @@ public class RandomRotatingBalls : MonoBehaviour
     public float maxOrbitSpeed = 30f;
     public float minRadius = 1f;
     public float maxRadius = 3f;
+
+    // 添加速度插值控制
+    [Range(0f, 1f)]
+    public float speedMultiplier = 1f;  // 速度系数，范围0-1
+    public float FocusValue = 0f;
+    public Material rotateBalls;
 
     private GameObject[] balls;
     private Vector3[] rotationAxes;
@@ -33,12 +39,13 @@ public class RandomRotatingBalls : MonoBehaviour
     }
 
     void Update()
+        
     {
+        rotateBalls.SetColor("_EmissionColor", Color.white * Mathf.Pow(2, InteraxonInterfacer.Instance.calm*6));
         if (FinalSceneStart && balls[0] == null)
         {
             GenerateBalls();
         }
-
         if (FinalSceneStart && balls[0] != null)
         {
             UpdateBallsMovement();
@@ -49,12 +56,10 @@ public class RandomRotatingBalls : MonoBehaviour
     {
         for (int i = 0; i < BallsNumber; i++)
         {
-            // 在球形区域内随机生成位置
             Vector3 randomPosition = Random.insideUnitSphere * RadioBall;
             balls[i] = Instantiate(RoatateBallPre, randomPosition + transform.position, Quaternion.identity);
             balls[i].transform.SetParent(transform);
 
-            // 初始化随机运动参数
             rotationAxes[i] = Random.onUnitSphere;
             rotationSpeeds[i] = Random.Range(minRotationSpeed, maxRotationSpeed);
             orbitSpeeds[i] = Random.Range(minOrbitSpeed, maxOrbitSpeed);
@@ -69,22 +74,25 @@ public class RandomRotatingBalls : MonoBehaviour
         {
             if (balls[i] != null)
             {
-                // 自转运动
-                balls[i].transform.Rotate(rotationAxes[i] * rotationSpeeds[i] * Time.deltaTime);
+                // 使用speedMultiplier来影响自转速度
+                float currentRotationSpeed = rotationSpeeds[i] * speedMultiplier + InteraxonInterfacer.Instance.focus*FocusValue;
+                balls[i].transform.Rotate(rotationAxes[i] * currentRotationSpeed * Time.deltaTime);
 
-                // 公转运动
-                float angle = Time.time * orbitSpeeds[i] + angleOffsets[i];
+                // 使用speedMultiplier来影响公转速度
+                float currentOrbitSpeed = orbitSpeeds[i] * speedMultiplier;
+                float angle = Time.time * currentOrbitSpeed + angleOffsets[i];
+
                 Vector3 orbitPosition = new Vector3(
                     Mathf.Cos(angle) * orbitRadii[i],
-                    Mathf.Sin(angle * 0.5f) * orbitRadii[i], // 使用不同的角度系数创造不规则运动
+                    Mathf.Sin(angle * 0.5f) * orbitRadii[i],
                     Mathf.Sin(angle) * orbitRadii[i]
                 );
+
                 balls[i].transform.position = transform.position + orbitPosition;
             }
         }
     }
 
-    // 清理生成的球体
     void OnDisable()
     {
         if (balls != null)

@@ -7,13 +7,13 @@ public class WaveSystemCircle : MonoBehaviour
     [Header("Wave Generation Settings")]
     public GameObject waveCenter;
     public GameObject prefab;
-    public GameObject PlayerBug; // 新增Player引用
+    public GameObject PlayerBug;
     public float outerRadius = 5f;
     public float innerRadius = 2f;
     public float ringSpacing = 1f;
     public float elementScale = 1f;
 
-    [Header("Distance Scale Settings")] // 新增距离缩放相关设置
+    [Header("Distance Scale Settings")]
     public float minDistance = 1f;
     public float maxDistance = 10f;
     public float minScaleBonus = 0f;
@@ -28,6 +28,8 @@ public class WaveSystemCircle : MonoBehaviour
     [Header("Wave Movement Settings")]
     public float floatAmplitude = 0.2f;
     public float floatFrequency = 0.5f;
+    [Range(0.1f, 10f)]
+    public float amplitudeSmoothSpeed = 2f; // 新增：振幅平滑过渡速度
 
     [Header("Cleanup Settings")]
     public float destroyDelay = 0.5f;
@@ -38,12 +40,21 @@ public class WaveSystemCircle : MonoBehaviour
     public float targetMindFocus = 0;
     public bool isDebug = true;
     public float mindValue = 0.5f;
-   
+    private float currentValue = 0f;
+    [SerializeField] private float speed = 1f;
+    private bool isIncreasing = true;
+
+    // 新增：用于振幅平滑过渡的变量
+    private float currentAmplitude = 0.2f;
+    private float targetAmplitude = 0.2f;
+    [Range(0.01f, 1f)]
+    public float amplitudeMaxChange = 0.1f;
     private int totalElements = 0;
     private bool isInitialized = false;
     [Header("wavingBalls")]
     public Material wavingBalls;
-
+   
+    private float previousTargetAmplitude = 0.2f; // 新增：
     public FlowRoomSwitch flowRoomSwitch;
 
     void Start()
@@ -54,15 +65,59 @@ public class WaveSystemCircle : MonoBehaviour
             GenerateCircularWaveArray();
             isInitialized = true;
         }
+        currentAmplitude = floatAmplitude;
+        previousTargetAmplitude = currentAmplitude;
+        targetAmplitude = currentAmplitude;
     }
-
+    void getFlowValue()
+    {
+        // 根据当前方向更新值
+        if (isIncreasing)
+        {
+            currentValue += speed * Time.deltaTime;
+            if (currentValue >= 1.5f)
+            {
+                currentValue = 1.5f;
+                isIncreasing = false;
+            }
+        }
+        else
+        {
+            currentValue -= speed * Time.deltaTime;
+            if (currentValue <= 0f)
+            {
+                currentValue = 0f;
+                isIncreasing = true;
+            }
+        }
+    }
     void Update()
     {
+        getFlowValue();
+        if (InteraxonInterfacer.Instance.flow == 0)
+        {
+            targetAmplitude = 0.2f;
+        }
         if (!flowRoomSwitch.flowStartBool) return;
         if (PlayerBug == null) return;
 
         wavingBalls.SetColor("_EmissionColor", Color.white * Mathf.Pow(2, -5 + (currentMindFocus / 20) * 7));
-        floatAmplitude = 2.2f - currentMindFocus/10;
+
+        // 计算新的目标振幅
+        float newTargetAmplitude = 2.2f - currentMindFocus / 10;
+
+        // 限制目标振幅的变化速度
+        float maxChange = amplitudeMaxChange * Time.deltaTime;
+        targetAmplitude = Mathf.MoveTowards(previousTargetAmplitude, newTargetAmplitude, maxChange);
+        previousTargetAmplitude = targetAmplitude;
+
+        // 使用二次平滑来过渡到目标振幅
+        float smoothFactor = Mathf.Pow(1f - Mathf.Exp(-amplitudeSmoothSpeed * Time.deltaTime), 2f);
+        currentAmplitude = Mathf.Lerp(currentAmplitude, targetAmplitude, smoothFactor);
+
+        // 应用平滑后的振幅
+         floatAmplitude = currentAmplitude*1.5f;
+        //floatAmplitude = currentValue;
 
         prefabs.RemoveAll(item => item == null);
 
@@ -75,7 +130,7 @@ public class WaveSystemCircle : MonoBehaviour
         }
 
         UpdateWaveMovement();
-        UpdateBallsScale(); // 新增更新小球尺寸的调用
+        UpdateBallsScale();
     }
 
     // 新增：更新小球尺寸的方法
@@ -169,8 +224,12 @@ public class WaveSystemCircle : MonoBehaviour
             );
 
             float phaseOffset = distanceFromCenter * 0.5f;
-            float offset = Mathf.Sin(Time.time * (floatFrequency * (isDebug ? 1 : currentMindFocus)) + phaseOffset)
-                          * (floatAmplitude * (isDebug ? 1 : currentMindFocus) / 2);
+            // float offset = Mathf.Sin(Time.time * (floatFrequency * (isDebug ? 1 : currentMindFocus)) + phaseOffset)
+            //              * (floatAmplitude  / 2);
+            float offset = Mathf.Sin(Time.time * (floatFrequency+ currentMindFocus / 1000) + phaseOffset)
+                         * (floatAmplitude  / 2) + currentMindFocus / 1000;
+           // Debug.Log(offset);
+           // Debug.Log(currentMindFocus/1000);
 
             instance.transform.position = new Vector3(startPos.x, center.y + offset, startPos.z);
         }
@@ -186,7 +245,8 @@ public class WaveSystemCircle : MonoBehaviour
         {
             if (InteraxonInterfacer.Instance != null)
             {
-                targetMindFocus = Mathf.Clamp(InteraxonInterfacer.Instance.flow * 10, 0, 22);
+                targetMindFocus = Mathf.Clamp(InteraxonInterfacer.Instance.flow * 15, 0, 22);
+                mindValue = targetMindFocus;
             }
             else
             {
@@ -210,6 +270,8 @@ public class WaveSystemCircle : MonoBehaviour
         if (maxDistance < minDistance) maxDistance = minDistance + 1;
         if (minScaleBonus < 0) minScaleBonus = 0;
         if (maxScaleBonus < minScaleBonus) maxScaleBonus = minScaleBonus;
+        if (amplitudeMaxChange < 0.01f) amplitudeMaxChange = 0.01f;
+        if (amplitudeMaxChange > 1f) amplitudeMaxChange = 1f;
     }
 
     void OnDisable()

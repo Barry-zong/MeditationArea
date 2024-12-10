@@ -21,10 +21,9 @@ public class FlowRoomSwitch : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!isDebug)
-        {
-            mindvalue = InteraxonInterfacer.Instance.focus;
-        }
+       
+            mindvalue = InteraxonInterfacer.Instance.focus*5;
+        
         if (flowStartBool)
         {
             if (-5 + addValue < 3)
@@ -50,10 +49,10 @@ public class FlowRoomSwitch : MonoBehaviour
     void addIntensity()
     {
        
-        if (mindvalue > 1.2)
+        if (mindvalue > 0.5f)
         {
             addValue+=0.01f;
-            addValue2 += 0.03f;
+            addValue2 += 0.04f;
             if(addValue2>3)
             {
                 addValue2 = 3;
