@@ -152,7 +152,7 @@ Material:
     - _TessellationMax: 0.415
     - _TessellationMin: 0.083
     - _WindFrequency: 0.01
-    - _WindStrength: 0.6976483
+    - _WindStrength: 0.6000003
     - _WindVelocity: 1
     - _WorkflowMode: 1
     - _ZWrite: 1

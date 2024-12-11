@@ -19,8 +19,8 @@ public class PlayerBugMove : MonoBehaviour
     private float maxGroundAngle = 45f; // 可以行走的最大坡度
 
     private float oppositeRotation;
-    private const float NEUTRAL_MIN = 450f;
-    private const float NEUTRAL_MAX = 520f;
+    private const float NEUTRAL_MIN = 400f;
+    private const float NEUTRAL_MAX = 600f;
     private const float MAX_SENSOR_VALUE = 1023f;
     private const float MIN_SENSOR_VALUE = 0f;
     private bool useArduinoControl = false;
@@ -30,6 +30,8 @@ public class PlayerBugMove : MonoBehaviour
     private float baseRotationY;
     private float targetRotation = 0f;
     private Vector3 groundNormal = Vector3.up; // 存储地面法线
+
+    public float ArduinoJumpControl =0f;
 
     void Start()
     {
@@ -65,7 +67,8 @@ public class PlayerBugMove : MonoBehaviour
     {
         if (IsGrounded() && canJump)
         {
-            if (Input.GetKeyDown(KeyCode.Space))
+            //if (Input.GetKeyDown(KeyCode.Space) )
+                if (Input.GetKeyDown(KeyCode.Space)|| ArduinoJumpControl == 1)
             {
                 rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
                 canJump = false;
@@ -117,7 +120,8 @@ public class PlayerBugMove : MonoBehaviour
         {
             float value1 = arduinoScript.arduinoPortNumberOne;
             float value2 = arduinoScript.arduinoPortNumberTwo;
-
+            float value3 = arduinoScript.arduinoPortNumberThree;
+            ArduinoJumpControl = value3;
             if (value1 != 0 || value2 != 0)
             {
                 useArduinoControl = true;

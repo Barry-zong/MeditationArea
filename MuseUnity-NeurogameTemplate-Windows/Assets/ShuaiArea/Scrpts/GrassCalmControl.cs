@@ -42,20 +42,21 @@ public class GrassCalmControl : MonoBehaviour
     private void UpdateTargetValues()
     {
         // 更新目标强度
-        targetIntensity = Mathf.Min(InteraxonInterfacer.Instance.calm, 1.5f);
+        targetIntensity = Mathf.Min(InteraxonInterfacer.Instance.calm*5, 2f);
+        //Debug.Log(InteraxonInterfacer.Instance.calm);
 
         // 计算目标calm值
-        float targetCalmValue = Mathf.InverseLerp(0, 1.5f, targetIntensity);
+        float targetCalmValue = Mathf.InverseLerp(0, 2f, targetIntensity);
 
         // 更新目标缩放
         targetScale = new Vector3(
             GrassPlane.transform.localScale.x,
-            1 + targetIntensity / 3,
+            1 + targetIntensity / 2,
             GrassPlane.transform.localScale.z
         );
 
         // 更新目标风强度
-        targetWindStrength = 1 - targetCalmValue;
+        targetWindStrength = 0.6f - targetCalmValue/4;
     }
 
     private void SmoothTransition()
