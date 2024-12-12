@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerBugMove : MonoBehaviour
 {
@@ -19,8 +20,8 @@ public class PlayerBugMove : MonoBehaviour
     private float maxGroundAngle = 45f; // 可以行走的最大坡度
 
     private float oppositeRotation;
-    private const float NEUTRAL_MIN = 400f;
-    private const float NEUTRAL_MAX = 600f;
+    public float NEUTRAL_MIN = 300;
+    public float NEUTRAL_MAX = 400f;
     private const float MAX_SENSOR_VALUE = 1023f;
     private const float MIN_SENSOR_VALUE = 0f;
     private bool useArduinoControl = false;
@@ -31,8 +32,12 @@ public class PlayerBugMove : MonoBehaviour
     private float targetRotation = 0f;
     private Vector3 groundNormal = Vector3.up; // 存储地面法线
 
-    public float ArduinoJumpControl =0f;
 
+    public float ArduinoJumpControl =0f;
+    public float startTime = 2f;    // 检测时间窗口
+    private float currentTime = 0f;  // 当前计时器
+    private int jumpCount = 0;       // 跳跃计数器
+    private bool wasJumpSignal = false;  // 用于跟踪上一帧的跳跃信号状态
     void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -48,6 +53,12 @@ public class PlayerBugMove : MonoBehaviour
 
         baseRotationY = transform.eulerAngles.y;
         oppositeRotation = baseRotationY + 180f;
+        ResetJumpCounter();
+    }
+    private void ResetJumpCounter()
+    {
+        currentTime = 0f;
+        jumpCount = 0;
     }
 
     private bool IsGrounded()
@@ -112,6 +123,47 @@ public class PlayerBugMove : MonoBehaviour
     {
         HandleJump();
         HandleArduinoInput();
+        jumpTestValue3();
+    }
+
+    private void jumpTestValue3()
+    {
+        // 处理跳跃信号检测
+        if (ArduinoJumpControl == 1)
+        {
+            if (!wasJumpSignal)  // 只在信号从0变为1时计数
+            {
+                jumpCount++;
+                if (jumpCount == 1) // 第一次跳跃时开始计时
+                {
+                    currentTime = 0f;
+                }
+            }
+            wasJumpSignal = true;
+        }
+        else
+        {
+            wasJumpSignal = false;
+        }
+
+        // 更新计时器
+        if (jumpCount > 0)
+        {
+            currentTime += Time.deltaTime;
+
+            // 检查是否达到重载条件
+            if (jumpCount >= 3)
+            {
+                Debug.Log("restart the scene");
+                SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+            }
+
+            // 如果超时，重置计数器
+            if (currentTime >= startTime)
+            {
+                ResetJumpCounter();
+            }
+        }
     }
 
     private void HandleArduinoInput()

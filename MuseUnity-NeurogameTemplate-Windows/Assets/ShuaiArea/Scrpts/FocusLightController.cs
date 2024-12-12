@@ -4,6 +4,7 @@ public class FocusLightController : MonoBehaviour
 {
     public Material playerMat;
     public Material flowerMat;
+    public Material hideDOOR;
 
     // 初始发光强度
     private float playerBaseIntensity = 0f;
@@ -33,6 +34,7 @@ public class FocusLightController : MonoBehaviour
         if (flowerMat != null)
         {
             flowerMat.SetColor("_EmissionColor", Color.white * Mathf.Pow(2, flowerBaseIntensity));
+            hideDOOR.SetColor("_EmissionColor", Color.white * Mathf.Pow(2, flowerBaseIntensity));
         }
     }
 
@@ -60,6 +62,7 @@ public class FocusLightController : MonoBehaviour
         {
             flowerMat.SetColor("_EmissionColor", Color.white * Mathf.Pow(2, currentFlowerIntensity));
         }
+        hideDOOR.SetColor("_EmissionColor", Color.white * Mathf.Pow(2, currentFlowerIntensity));
     }
 
     private void OnDisable()
