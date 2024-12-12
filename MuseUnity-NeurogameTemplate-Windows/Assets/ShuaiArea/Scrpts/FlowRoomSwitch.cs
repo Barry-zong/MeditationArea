@@ -51,7 +51,7 @@ public class FlowRoomSwitch : MonoBehaviour
        
         if (mindvalue > 0.5f)
         {
-            addValue+=0.01f;
+            addValue+=0.015f;
             addValue2 += 0.04f;
             if(addValue2>3)
             {

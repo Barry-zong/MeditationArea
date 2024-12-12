@@ -39,7 +39,7 @@ public class FloatingMovement : MonoBehaviour
     private float currentFloatSpeed;
     private float nextRandomTime;
     private float randomTimeInterval;
-    private bool wasFloating = false;
+    private bool wasFloating = true;
 
     void Start()
     {
