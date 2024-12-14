@@ -57,6 +57,17 @@ public class RandomRotatingBalls : MonoBehaviour
     [Tooltip("Choose how balls are distributed")]
     public DistributionType distributionPattern = DistributionType.Random;
 
+    [Header("Smoothing Settings")]
+    [Tooltip("How quickly the emission color changes")]
+    [Range(0.1f, 10f)]
+    public float colorSmoothSpeed = 2f;
+    [Tooltip("How quickly the rotation speed changes")]
+    [Range(0.1f, 10f)]
+    public float speedSmoothSpeed = 2f;
+
+    private float currentEmissionMultiplier;
+    private float currentSpeedMultiplier;
+
     public enum DistributionType
     {
         Random,
@@ -91,23 +102,33 @@ public class RandomRotatingBalls : MonoBehaviour
     {
         if (rotateBalls != null)
         {
-            if (fcf == 0)
+            // Target emission multiplier based on fcf
+            float targetEmissionMultiplier = 0;
+            switch (fcf)
             {
-                rotateBalls.SetColor("_EmissionColor", Color.white * Mathf.Pow(2, InteraxonInterfacer.Instance.calm * 6));
-            }
-            if (fcf == 1)
-            {
-                rotateBalls.SetColor("_EmissionColor", Color.white * Mathf.Pow(2, InteraxonInterfacer.Instance.focus * 6));
-            }
-            if (fcf == 2)
-            {
-                rotateBalls.SetColor("_EmissionColor", Color.white * Mathf.Pow(2, InteraxonInterfacer.Instance.calm * 6));
-            }
-            if (fcf == 3)
-            {
-                rotateBalls.SetColor("_EmissionColor", Color.white * Mathf.Pow(2, InteraxonInterfacer.Instance.flow * 2));
+                case 0:
+                    targetEmissionMultiplier = Mathf.Pow(2, InteraxonInterfacer.Instance.calm * 6);
+                    break;
+                case 1:
+                    targetEmissionMultiplier = Mathf.Pow(2, InteraxonInterfacer.Instance.focus * 6);
+                    break;
+                case 2:
+                    targetEmissionMultiplier = Mathf.Pow(2, InteraxonInterfacer.Instance.calm * 6);
+                    break;
+                case 3:
+                    targetEmissionMultiplier = Mathf.Pow(2, InteraxonInterfacer.Instance.flow * 2);
+                    break;
             }
 
+            // Smooth the emission multiplier
+            currentEmissionMultiplier = Mathf.Lerp(
+                currentEmissionMultiplier,
+                targetEmissionMultiplier,
+                Time.deltaTime * colorSmoothSpeed
+            );
+
+            // Apply smoothed emission color
+            rotateBalls.SetColor("_EmissionColor", Color.white * currentEmissionMultiplier);
         }
 
         if (FinalSceneStart && (balls == null || balls[0] == null))
@@ -255,27 +276,37 @@ public class RandomRotatingBalls : MonoBehaviour
 
     void UpdateBallsMovement()
     {
+        float targetSpeedMultiplier = 0;
+        switch (fcf)
+        {
+            case 1:
+                targetSpeedMultiplier = InteraxonInterfacer.Instance.focus / 2;
+                break;
+            case 2:
+                targetSpeedMultiplier = InteraxonInterfacer.Instance.calm / 2;
+                break;
+            case 3:
+                targetSpeedMultiplier = InteraxonInterfacer.Instance.flow / 6;
+                break;
+        }
+
+        // Smooth the speed multiplier
+        currentSpeedMultiplier = Mathf.Lerp(
+            currentSpeedMultiplier,
+            targetSpeedMultiplier,
+            Time.deltaTime * speedSmoothSpeed
+        );
+
         for (int i = 0; i < BallsNumber; i++)
         {
             if (balls[i] != null)
             {
-                if(fcf == 1)
-                {
-                    speedMultiplier = InteraxonInterfacer.Instance.focus/2;
-                }
-                if (fcf == 2)
-                {
-                    speedMultiplier = InteraxonInterfacer.Instance.calm/2;
-                }
-                if (fcf == 3)
-                {
-                    speedMultiplier = InteraxonInterfacer.Instance.flow/6;
-                }
+                float currentRotationSpeed = rotationSpeeds[i] * currentSpeedMultiplier +
+                    InteraxonInterfacer.Instance.focus * FocusValue;
 
-                float currentRotationSpeed = rotationSpeeds[i] * speedMultiplier + InteraxonInterfacer.Instance.focus * FocusValue;
                 balls[i].transform.Rotate(rotationAxes[i] * currentRotationSpeed * Time.deltaTime);
 
-                float currentOrbitSpeed = orbitSpeeds[i] * speedMultiplier;
+                float currentOrbitSpeed = orbitSpeeds[i] * currentSpeedMultiplier;
                 float angle = Time.time * currentOrbitSpeed + angleOffsets[i];
 
                 Vector3 orbitPosition = new Vector3(
