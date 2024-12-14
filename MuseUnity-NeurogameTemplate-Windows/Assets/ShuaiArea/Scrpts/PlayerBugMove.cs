@@ -20,8 +20,10 @@ public class PlayerBugMove : MonoBehaviour
     private float maxGroundAngle = 45f; // 可以行走的最大坡度
 
     private float oppositeRotation;
-    public float NEUTRAL_MIN = 300;
-    public float NEUTRAL_MAX = 400f;
+    public float NEUTRAL_MIN = 320;
+    public float NEUTRAL_MAX = 380f;
+    public float NEUTRAL_MIN2 = 340;
+    public float NEUTRAL_MAX2 = 370f;
     private const float MAX_SENSOR_VALUE = 1023f;
     private const float MIN_SENSOR_VALUE = 0f;
     private bool useArduinoControl = false;
@@ -185,9 +187,9 @@ public class PlayerBugMove : MonoBehaviour
                 else
                     verticalMovement = 0f;
 
-                if (value2 > NEUTRAL_MAX)
+                if (value2 > NEUTRAL_MAX2)
                     horizontalMovement = -(Mathf.InverseLerp(NEUTRAL_MAX, MAX_SENSOR_VALUE, value2));
-                else if (value2 < NEUTRAL_MIN)
+                else if (value2 < NEUTRAL_MIN2)
                     horizontalMovement = 1 - Mathf.InverseLerp(MIN_SENSOR_VALUE, NEUTRAL_MIN, value2);
                 else
                     horizontalMovement = 0f;
