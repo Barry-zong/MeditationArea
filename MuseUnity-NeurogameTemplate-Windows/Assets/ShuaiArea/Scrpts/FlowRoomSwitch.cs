@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using System.Collections;
 public class FlowRoomSwitch : MonoBehaviour
 {
     public bool isDebug = false;
@@ -10,6 +10,10 @@ public class FlowRoomSwitch : MonoBehaviour
     private float addValue2 = 0;
     private Collider roomclider;
     public bool flowStartBool = false;
+    public MaterialEmissionController materialEmissionController;
+    public float holdTime = 5f;
+   
+    
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -21,8 +25,12 @@ public class FlowRoomSwitch : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if(!isDebug)
+        {
+            mindvalue = InteraxonInterfacer.Instance.focus * 5;
+        }
        
-            mindvalue = InteraxonInterfacer.Instance.focus*5;
+           
         
         if (flowStartBool)
         {
@@ -32,10 +40,22 @@ public class FlowRoomSwitch : MonoBehaviour
             }
             else
             {
-                roomclider.enabled = false;
+                //switch
+                //FadeInAudio();
+              //  audioSource.Play();
+              //  Debug.Log("musicShouldPlay_tree");
+                StartCoroutine(DisableColliderAfterDelay());
+                materialEmissionController.LighttheTree = true;
             }
+            
         }
        
+    }
+    private IEnumerator DisableColliderAfterDelay()
+    {
+        yield return new WaitForSeconds(holdTime);  // µÈ´ýxÃë
+       // FadeOutAudio();
+        roomclider.enabled = false;  // ½ûÓÃÅö×²Æ÷
     }
     private void OnCollisionEnter(Collision collision)
     {
@@ -51,7 +71,7 @@ public class FlowRoomSwitch : MonoBehaviour
        
         if (mindvalue > 0.5f)
         {
-            addValue+=0.015f;
+            addValue+=0.010f;
             addValue2 += 0.04f;
             if(addValue2>3)
             {
@@ -63,4 +83,9 @@ public class FlowRoomSwitch : MonoBehaviour
         FlowStarMat.SetColor("_EmissionColor", Color.white * Mathf.Pow(2, addValue2));
 
     }
+
+    
+
+   
+
 }

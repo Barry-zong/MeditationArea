@@ -141,7 +141,7 @@ public class WaveSystemCircle : MonoBehaviour
             if (ball != null)
             {
                 float distance = Vector3.Distance(ball.transform.position, PlayerBug.transform.position);
-                Debug.Log(distance);
+            //    Debug.Log(distance);
                 float normalizedDistance = Mathf.Clamp01((distance - minDistance) / (maxDistance - minDistance));
                 float newBallsScale = Mathf.Lerp(maxScaleBonus, minScaleBonus, normalizedDistance);
                 

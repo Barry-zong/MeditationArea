@@ -50,6 +50,7 @@ public class SunController : MonoBehaviour
     {
         if (directionalLight != null)
         {
+            directionalLight.SetActive(true);
             sunLight = directionalLight.GetComponent<Light>();
             directionalLight.SetActive(true);
             SetSunState(stateOneEmission, stateOneIntensity, false);
