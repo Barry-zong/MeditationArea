@@ -2,6 +2,22 @@ Shader "Universal Render Pipeline/LitWind"
 {
     Properties
     {
+         [Header(Wind)]
+    [Space(10)]
+    _WindDirection("Wind Direction", Vector) = (1,1,1,0)
+    [Space(5)]
+    _WindStrength("Wind Strength", Range(0,2)) = 0.5
+    [Space(5)]
+    _WindSpeed("Wind Speed", Range(0,10)) = 0.8
+    [Space(5)]
+    _WindTurbulence("Wind Turbulence", Range(0,2)) = 0.5
+    [Space(5)]
+    _BendAmount("Bend Amount", Range(0,1)) = 0.5
+    [Space(5)]
+    _WindFrequency("Wind Frequency", Range(0,5)) = 1
+    [Space(5)]
+    _HeightFactor("Height Factor", Range(0,1)) = 0.5
+
         // Specular vs Metallic workflow
         _WorkflowMode("WorkflowMode", Float) = 1.0
 
@@ -72,6 +88,7 @@ Shader "Universal Render Pipeline/LitWind"
         [HideInInspector][NoScaleOffset]unity_Lightmaps("unity_Lightmaps", 2DArray) = "" {}
         [HideInInspector][NoScaleOffset]unity_LightmapsInd("unity_LightmapsInd", 2DArray) = "" {}
         [HideInInspector][NoScaleOffset]unity_ShadowMasks("unity_ShadowMasks", 2DArray) = "" {}
+      
     }
 
     SubShader
@@ -108,6 +125,8 @@ Shader "Universal Render Pipeline/LitWind"
             AlphaToMask[_AlphaToMask]
 
             HLSLPROGRAM
+             #pragma vertex WindLitVertex
+            #pragma fragment LitPassFragment
             #pragma target 2.0
 
             // -------------------------------------
@@ -171,6 +190,74 @@ Shader "Universal Render Pipeline/LitWind"
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitForwardPass.hlsl"
+             float4 _WindDirection;
+            float _WindStrength;
+            float _WindSpeed;
+            float _WindTurbulence;
+            float _BendAmount;
+            float _WindFrequency;
+            float _HeightFactor;
+            
+            // 噪声函数
+            float hash(float2 p)
+            {
+                return frac(sin(dot(p, float2(127.1, 311.7))) * 43758.5453123);
+            }
+            
+            float noise(float2 p)
+            {
+                float2 i = floor(p);
+                float2 f = frac(p);
+                f = f * f * (3.0 - 2.0 * f);
+                
+                float a = hash(i);
+                float b = hash(i + float2(1.0, 0.0));
+                float c = hash(i + float2(0.0, 1.0));
+                float d = hash(i + float2(1.0, 1.0));
+                
+                return lerp(lerp(a, b, f.x), lerp(c, d, f.x), f.y);
+            }
+
+            // 计算风力偏移的函数
+            float3 CalculateWindOffset(float3 positionOS, float3 worldPos)
+            {
+                float time = _Time.y * _WindSpeed;
+                
+                // 基础风力
+                float windNoise = noise(worldPos.xz * _WindFrequency + time);
+                float heightFactor = positionOS.y * _HeightFactor;
+                
+                // 计算风力偏移
+                float3 windOffset = _WindDirection.xyz * windNoise * _WindStrength;
+                windOffset *= heightFactor;
+                
+                // 添加湍流
+                float turbulence = noise(worldPos.xz * 2.0 + time * 0.5) * _WindTurbulence;
+                windOffset += float3(turbulence, 0, turbulence) * heightFactor;
+                
+                // 弯曲效果
+                float bend = pow(heightFactor, 2) * _BendAmount;
+                windOffset += _WindDirection.xyz * bend;
+                
+                return windOffset;
+            }
+            
+            // 修改后的顶点着色器
+            Varyings WindLitVertex(Attributes input)
+            {
+                // 计算世界空间位置用于风力计算
+                float3 worldPos = TransformObjectToWorld(input.positionOS.xyz);
+                
+                // 计算风力偏移
+                float3 windOffset = CalculateWindOffset(input.positionOS.xyz, worldPos);
+                
+                // 应用风力偏移到顶点位置
+                input.positionOS.xyz += windOffset;
+                
+                // 调用原始的LitPassVertex函数处理其他标准渲染逻辑
+                return LitPassVertex(input);
+            }
+            
             ENDHLSL
         }
 

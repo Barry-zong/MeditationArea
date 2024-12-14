@@ -12,8 +12,8 @@ public class FlowRoomSwitch : MonoBehaviour
     public bool flowStartBool = false;
     public MaterialEmissionController materialEmissionController;
     public float holdTime = 5f;
-   
-    
+
+    public CircularMotion circularMotion;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -49,7 +49,7 @@ public class FlowRoomSwitch : MonoBehaviour
             }
             
         }
-       
+        circularMotion.height = addValue * 2.65f / 8f;
     }
     private IEnumerator DisableColliderAfterDelay()
     {
@@ -71,6 +71,7 @@ public class FlowRoomSwitch : MonoBehaviour
        
         if (mindvalue > 0.5f)
         {
+            circularMotion.isEnhanced = true;
             addValue+=0.010f;
             addValue2 += 0.04f;
             if(addValue2>3)
@@ -78,6 +79,10 @@ public class FlowRoomSwitch : MonoBehaviour
                 addValue2 = 3;
             }
 
+        }
+        else
+        {
+            circularMotion.isEnhanced = false;
         }
         FlowDoorMat.SetColor("_EmissionColor", Color.white * Mathf.Pow(2, -5+addValue));
         FlowStarMat.SetColor("_EmissionColor", Color.white * Mathf.Pow(2, addValue2));

@@ -6,6 +6,8 @@ public class TeleportToTarget : MonoBehaviour
     public GameObject TargetPosition;
     public FlowRoomSwitch RoomSwitch;
     public RandomRotatingBalls randomRotatingballs;
+    public RandomRotatingBalls randomRotatingballs2;
+    public RandomRotatingBalls randomRotatingballs3;
 
     private void OnTriggerEnter(Collider other)
     {
@@ -20,6 +22,8 @@ public class TeleportToTarget : MonoBehaviour
             other.transform.rotation = currentRotation;
             RoomSwitch.flowStartBool = false;
             randomRotatingballs.FinalSceneStart = true;
+            randomRotatingballs2.FinalSceneStart = true;
+            randomRotatingballs3.FinalSceneStart = true;
         }
     }
 }

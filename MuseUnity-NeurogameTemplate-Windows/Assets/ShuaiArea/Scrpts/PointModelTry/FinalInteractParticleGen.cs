@@ -15,7 +15,7 @@ public class FinalInteractParticleGen : MonoBehaviour
 
     public GameObject pointPrefab;
     public float oscillationSpeed = 1f;
-    public float oscillationHeight = 0.5f;
+    public float oscillationHeight =    0f;
     public float minSize = 0.05f;
     public float maxSize = 0.15f;
     public bool isDebug = false;
