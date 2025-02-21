@@ -17,7 +17,19 @@ public class PlayerBugMove : MonoBehaviour
     [SerializeField]
     private LayerMask groundLayer;
     [SerializeField]
-    private float maxGroundAngle = 45f; // 可以行走的最大坡度
+    private float maxGroundAngle = 45f;
+    [SerializeField]
+    private Camera mainCamera;
+
+    public enum JumpDirection
+    {
+        WorldUp,      // 世界坐标系的上方向 (0,1,0)
+        CharacterUp,  // 角色的局部上方向 (transform.up)
+        SurfaceNormal // 根据站立表面的法线方向
+    }
+
+    [SerializeField]
+    public JumpDirection jumpDirection = JumpDirection.WorldUp;
 
     private float oppositeRotation;
     public float NEUTRAL_MIN = 320;
@@ -50,6 +62,11 @@ public class PlayerBugMove : MonoBehaviour
             return;
         }
 
+        if (mainCamera == null)
+        {
+            mainCamera = Camera.main;
+        }
+
         rb.constraints = RigidbodyConstraints.FreezeRotation;
         rb.useGravity = true;
 
@@ -78,12 +95,30 @@ public class PlayerBugMove : MonoBehaviour
 
     private void HandleJump()
     {
+
         if (IsGrounded() && canJump)
         {
-            //if (Input.GetKeyDown(KeyCode.Space) )
-                if (Input.GetKeyDown(KeyCode.Space)|| ArduinoJumpControl == 1)
+            if (Input.GetKeyDown(KeyCode.Space) || ArduinoJumpControl == 1)
             {
-                rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+                // 根据选择的跳跃方向设置跳跃力
+                Vector3 jumpVector;
+                switch (jumpDirection)
+                {
+                    case JumpDirection.WorldUp:
+                        jumpVector = Vector3.up;
+                        break;
+                    case JumpDirection.CharacterUp:
+                        jumpVector = transform.up;
+                        break;
+                    case JumpDirection.SurfaceNormal:
+                        jumpVector = groundNormal;
+                        break;
+                    default:
+                        jumpVector = Vector3.up;
+                        break;
+                }
+
+                rb.AddForce(jumpVector * jumpForce, ForceMode.Impulse);
                 canJump = false;
                 Invoke("ResetJump", 0.1f);
             }
@@ -205,6 +240,7 @@ public class PlayerBugMove : MonoBehaviour
 
     void FixedUpdate()
     {
+
         Vector3 movement;
         if (useArduinoControl)
         {
@@ -214,29 +250,42 @@ public class PlayerBugMove : MonoBehaviour
         {
             float horizontalInput = Input.GetAxis("Horizontal");
             float verticalInput = Input.GetAxis("Vertical");
-            movement = new Vector3(horizontalInput, 0f, verticalInput);
-            HandleRotation(horizontalInput, verticalInput);
+
+            Vector3 cameraForward = mainCamera.transform.forward;
+            Vector3 cameraRight = mainCamera.transform.right;
+
+            cameraForward.y = 0;
+            cameraRight.y = 0;
+            cameraForward.Normalize();
+            cameraRight.Normalize();
+
+            movement = cameraRight * horizontalInput + cameraForward * verticalInput;
+
+            if (movement.magnitude > 0.1f)
+            {
+                Quaternion targetRotation = Quaternion.LookRotation(movement);
+                transform.rotation = Quaternion.RotateTowards(
+                    transform.rotation,
+                    targetRotation,
+                    rotationSpeed * Time.deltaTime
+                );
+            }
         }
 
-        // 计算移动方向
         Vector3 moveDirection = movement.normalized;
 
-        // 在地面上时，将移动向量投影到地面平面上
         if (IsGrounded())
         {
             moveDirection = Vector3.ProjectOnPlane(moveDirection, groundNormal).normalized;
         }
 
-        // 保持当前的Y轴速度（重力影响）
         Vector3 currentVelocity = rb.linearVelocity;
         Vector3 targetVelocity = moveDirection * moveSpeed;
         targetVelocity.y = currentVelocity.y;
 
-        // 使用力来移动，而不是直接设置速度
         Vector3 velocityChange = targetVelocity - currentVelocity;
-        velocityChange.y = 0f; // 不修改垂直方向的速度
+        velocityChange.y = 0f;
 
-        // 应用力
         rb.AddForce(velocityChange, ForceMode.VelocityChange);
     }
 

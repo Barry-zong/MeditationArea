@@ -39,7 +39,7 @@ public class SpotlightFocusController : MonoBehaviour
         }
         else
         {
-            currentFocus = InteraxonInterfacer.Instance.focus;
+            currentFocus = InteraxonInterfacer.Instance.flow;
         }
 
         // 使用线性插值计算当前强度

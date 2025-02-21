@@ -27,7 +27,7 @@ public class FlowerControl : MonoBehaviour
 
     void Update()
     {
-        if (InteraxonInterfacer.Instance.currentConnectionState != ConnectionState.CONNECTED)
+        if (InteraxonInterfacer.Instance.currentConnectionState != ConnectionState.CONNECTED && InteraxonInterfacer.Instance.calm == 0)
         {
             // 如果未连接，缓慢停止所有动作
             targetAnimSpeed = 0f;

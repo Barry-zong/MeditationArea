@@ -9,12 +9,13 @@ public class RstartGame : MonoBehaviour
     private bool isReloading = false;
 
     void Update()
-    {
+    {/*
         // 检测是否按下R键且当前没有在重载过程中
         if (Input.GetKeyDown(KeyCode.R) && !isReloading)
         {
             StartCoroutine(ReloadSceneWithTransition());
         }
+        */
     }
 
     IEnumerator ReloadSceneWithTransition()

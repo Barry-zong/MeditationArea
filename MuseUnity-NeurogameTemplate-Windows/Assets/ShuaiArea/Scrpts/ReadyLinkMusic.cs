@@ -20,13 +20,14 @@ public class ReadyLinkMusic : MonoBehaviour
         }
         else
         {
-            testBug= false;
+           // testBug= false;
         }
        
         if (testBug)
         {
-            Debug.Log(true);
+          //  Debug.Log(true);
             audioSource.Play();
+            testBug = false;
         }
     }
 }

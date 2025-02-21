@@ -106,30 +106,16 @@ public class MindMoveWave : MonoBehaviour
 
     private void UpdateMindFocus()
     {
-        if (InteraxonInterfacer.Instance != null &&
-            InteraxonInterfacer.Instance.currentConnectionState == ConnectionState.CONNECTED &&
-            InteraxonInterfacer.Instance.Artifacts.headbandOn)
-        {
+      
             targetMindFocus = Mathf.Clamp(InteraxonInterfacer.Instance.focus * 10, 0, 10);
-        }
-        else
-        {
-            targetMindFocus = 0;
-        }
+        
     }
 
     private void UpdateFlowState()
     {
-        if (InteraxonInterfacer.Instance != null &&
-            InteraxonInterfacer.Instance.currentConnectionState == ConnectionState.CONNECTED &&
-            InteraxonInterfacer.Instance.Artifacts.headbandOn)
-        {
+        
             targetFlow = Mathf.Clamp(InteraxonInterfacer.Instance.calm * 10, 0, 10);
-        }
-        else
-        {
-            targetFlow = 0;
-        }
+        
     }
 
     private void UpdateDoorPosition()

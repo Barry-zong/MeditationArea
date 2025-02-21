@@ -43,6 +43,9 @@ public class InteraxonInterfacer : MonoBehaviour
     public float focus;
     public float flow;
     public float heartMonitor;
+    private float fakeCalm;
+    private float fakeFocus;
+    private float fakeFlow;
 
     //--------------------------------------
     // Public members for PPG Data
@@ -71,7 +74,7 @@ public class InteraxonInterfacer : MonoBehaviour
     public ChannelData ThetaScore;
     public ChannelData GammaScore;
     //public List<double> TestValue = new List<double>();
-
+    private bool KeyboardCon = false;
 
     //--------------------------------------
     // Public methods that gets called on UI events.
@@ -331,6 +334,7 @@ public class InteraxonInterfacer : MonoBehaviour
     // Update is called once per frame
     private void Update()
     {
+        Qerinputdetect();
         if (!this.initialized && HasPermissions)
         {
             Initialize();
@@ -340,6 +344,7 @@ public class InteraxonInterfacer : MonoBehaviour
 #endif
         if (currentConnectionState == ConnectionState.CONNECTED)
         {
+            // connect detect assign part
             connected = true;
 
             //calm = stupidModel.GetCalm(AlphaAbsolute, BetaAbsolute, DeltaAbsolute, ThetaAbsolute, GammaAbsolute);
@@ -361,7 +366,62 @@ public class InteraxonInterfacer : MonoBehaviour
         else
         {
             connected = false;
+            
+            //Start mannually input system switch
+                calm =  fakeCalm/5 ;
+                focus =  fakeFocus/5  ;
+                flow =  fakeFlow   ;
+                heartMonitor = ( fakeFlow + fakeCalm + fakeFocus)/30f  ;
+            
+           // Debug.Log("manually input");
         }
+    }
+
+    private void Qerinputdetect()
+    {
+        // 数值变化速率
+        float riseSpeed = 0.3f;     // 按下时上升的速度
+        float fallSpeed = 0.5f;     // 松开时下降的速度
+
+        // 处理Q键 - 控制fakeCalm
+        if (Input.GetKey(KeyCode.Q))
+        {
+            // 按下Q键，fakeCalm缓慢上升
+            fakeCalm = Mathf.Min(4.0f, fakeCalm + riseSpeed * Time.deltaTime);
+            KeyboardCon = true;
+        }
+        else if(KeyboardCon)
+        {
+            // 没有按下Q键，fakeCalm缓慢下降
+            fakeCalm = Mathf.Max(0.1f, fakeCalm - fallSpeed * Time.deltaTime);
+        }
+
+        // 处理E键 - 控制fakeFocus
+        if (Input.GetKey(KeyCode.E))
+        {
+            // 按下E键，fakeFocus缓慢上升
+            fakeFocus = Mathf.Min(4.0f, fakeFocus + riseSpeed * Time.deltaTime);
+        }
+        else if (KeyboardCon)
+        {
+            // 没有按下E键，fakeFocus缓慢下降
+            fakeFocus = Mathf.Max(0.1f, fakeFocus - fallSpeed * Time.deltaTime);
+        }
+
+        // 处理R键 - 控制fakeFlow
+        if (Input.GetKey(KeyCode.R))
+        {
+            // 按下R键，fakeFlow缓慢上升
+            fakeFlow = Mathf.Min(4.0f, fakeFlow + riseSpeed * Time.deltaTime);
+        }
+        else if (KeyboardCon)
+        {
+            // 没有按下R键，fakeFlow缓慢下降
+            fakeFlow = Mathf.Max(0.1f, fakeFlow - fallSpeed * Time.deltaTime);
+        }
+
+        // 调试输出，可以根据需要注释掉
+        Debug.Log($"Calm: {calm:F2}, Focus: {focus:F2}, Flow: {flow:F2}");
     }
 
     private void ParseArtifactValues(string data)

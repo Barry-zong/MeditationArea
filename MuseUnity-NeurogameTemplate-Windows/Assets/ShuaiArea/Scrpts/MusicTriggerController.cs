@@ -120,7 +120,7 @@ public class MusicTriggerController : MonoBehaviour
 
             // Apply the intensity volume
             audioSource.volume = currentIntensityVolume;
-            Debug.Log(currentIntensityVolume);
+         //   Debug.Log(currentIntensityVolume);
         }
     }
 }
